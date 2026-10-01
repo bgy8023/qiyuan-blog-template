@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects
+/blog/* /post/:splat 301
+/feed /rss.xml 301
+
