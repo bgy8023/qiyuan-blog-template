@@ -1,5 +1,53 @@
 
 // ==========================================
+// D1 原生控制台 API：仪表盘、全量配置、评论审核 (借鉴 XinBlog & personal-blog)
+// ==========================================
+async function handleD1AdminDashboard(request, env, origin) {
+  if (!env.DB) return err('D1 未绑定', 500, origin);
+  try {
+    const totalViewsRow = await env.DB.prepare('SELECT SUM(views) as total_views, SUM(likes) as total_likes FROM post_stats').first();
+    const commentsCountRow = await env.DB.prepare('SELECT COUNT(*) as total_comments FROM comments').first();
+    const recentComments = await env.DB.prepare('SELECT id, post_slug, author, email, content, created_at, status FROM comments ORDER BY created_at DESC LIMIT 10').all();
+    const topPosts = await env.DB.prepare('SELECT slug, views, likes FROM post_stats ORDER BY views DESC LIMIT 5').all();
+    const settingsRows = await env.DB.prepare('SELECT key, value FROM site_settings').all();
+    
+    const settingsMap = {};
+    for (const r of (settingsRows.results || [])) {
+      try { settingsMap[r.key] = JSON.parse(r.value); } catch(_) { settingsMap[r.key] = r.value; }
+    }
+
+    return jsonOk({
+      stats: {
+        total_views: totalViewsRow?.total_views || 0,
+        total_likes: totalViewsRow?.total_likes || 0,
+        total_comments: commentsCountRow?.total_comments || 0
+      },
+      top_posts: topPosts.results || [],
+      recent_comments: recentComments.results || [],
+      live_settings: settingsMap
+    }, origin);
+  } catch (e) {
+    return err('获取仪表盘数据失败: ' + e.message, 500, origin);
+  }
+}
+
+async function handleD1CommentStatus(request, env, method, origin) {
+  if (!env.DB) return err('D1 未绑定', 500, origin);
+  if (method === 'POST') {
+    const { id, status } = await request.json();
+    if (!id || !status) return err('缺少参数', 400, origin);
+    if (status === 'delete') {
+      await env.DB.prepare('DELETE FROM comments WHERE id = ?').bind(id).run();
+      return jsonOk({ message: '评论已删除' }, origin);
+    }
+    await env.DB.prepare('UPDATE comments SET status = ? WHERE id = ?').bind(status, id).run();
+    return jsonOk({ message: '评论状态更新为 ' + status }, origin);
+  }
+  return err('Method not allowed', 405, origin);
+}
+
+
+// ==========================================
 // D1 实时配置与动态交互接口 (借鉴 XinBlog & personal-blog)
 // ==========================================
 async function handleD1Settings(request, env, method, origin) {
@@ -1858,6 +1906,14 @@ async function onRequest(context) {
 
   // Decap CMS GitHub OAuth 路由
   // D1 实时配置与动态交互路由
+  // D1 仪表盘统计与评论审核接口
+  if (path === '/admin/dashboard' && method === 'GET') {
+    return await handleD1AdminDashboard(request, env, origin);
+  }
+  if (path === '/admin/comment-status' && method === 'POST') {
+    return await handleD1CommentStatus(request, env, method, origin);
+  }
+
   if (path === '/settings') {
     return await handleD1Settings(request, env, method, origin);
   }
@@ -2748,6 +2804,7 @@ export default {
     return onRequest({ request, env, ctx });
   }
 };
+
 
 
 
