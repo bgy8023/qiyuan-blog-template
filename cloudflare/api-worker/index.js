@@ -1,5 +1,75 @@
 
 // ==========================================
+// D1 实时配置与动态交互接口 (借鉴 XinBlog & personal-blog)
+// ==========================================
+async function handleD1Settings(request, env, method, origin) {
+  if (!env.DB) return err('D1 未绑定', 500, origin);
+  if (method === 'GET') {
+    const { results } = await env.DB.prepare('SELECT key, value FROM site_settings').all();
+    const map = {};
+    for (const r of (results || [])) {
+      try { map[r.key] = JSON.parse(r.value); } catch(_) { map[r.key] = r.value; }
+    }
+    return jsonOk({ settings: map }, origin);
+  }
+  if (method === 'POST') {
+    const body = await request.json();
+    const stmt = env.DB.prepare('INSERT INTO site_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at');
+    const batch = [];
+    const now = Date.now();
+    for (const [k, v] of Object.entries(body)) {
+      batch.push(stmt.bind(k, JSON.stringify(v), now));
+    }
+    if (batch.length) await env.DB.batch(batch);
+    return jsonOk({ message: '配置已秒级同步到 D1' }, origin);
+  }
+  return err('Method not allowed', 405, origin);
+}
+
+async function handleD1Stats(request, env, url, method, origin) {
+  if (!env.DB) return err('D1 未绑定', 500, origin);
+  const slug = url.searchParams.get('slug');
+  if (!slug) return err('缺少 slug', 400, origin);
+
+  if (method === 'GET') {
+    const row = await env.DB.prepare('SELECT views, likes FROM post_stats WHERE slug = ?').bind(slug).first();
+    return jsonOk({ views: row?.views || 0, likes: row?.likes || 0 }, origin);
+  }
+  if (method === 'POST') {
+    const type = url.searchParams.get('type') || 'view'; // view or like
+    if (type === 'like') {
+      await env.DB.prepare('INSERT INTO post_stats (slug, likes, views) VALUES (?, 1, 0) ON CONFLICT(slug) DO UPDATE SET likes = likes + 1').bind(slug).run();
+    } else {
+      await env.DB.prepare('INSERT INTO post_stats (slug, views, likes) VALUES (?, 1, 0) ON CONFLICT(slug) DO UPDATE SET views = views + 1').bind(slug).run();
+    }
+    const updated = await env.DB.prepare('SELECT views, likes FROM post_stats WHERE slug = ?').bind(slug).first();
+    return jsonOk({ views: updated?.views || 0, likes: updated?.likes || 0 }, origin);
+  }
+  return err('Method not allowed', 405, origin);
+}
+
+async function handleD1Comments(request, env, url, method, origin) {
+  if (!env.DB) return err('D1 未绑定', 500, origin);
+  if (method === 'GET') {
+    const slug = url.searchParams.get('slug');
+    if (!slug) return err('缺少 slug', 400, origin);
+    const { results } = await env.DB.prepare('SELECT id, author, avatar, content, created_at FROM comments WHERE post_slug = ? AND status = "approved" ORDER BY created_at DESC').bind(slug).all();
+    return jsonOk({ comments: results || [] }, origin);
+  }
+  if (method === 'POST') {
+    const body = await request.json();
+    const { post_slug, author, email, content } = body;
+    if (!post_slug || !author || !content) return err('参数不完整', 400, origin);
+    const avatar = 'https://api.dicebear.com/7.x/identicon/svg?seed=' + encodeURIComponent(author);
+    await env.DB.prepare('INSERT INTO comments (post_slug, author, email, avatar, content, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(post_slug, author, email || '', avatar, content, Date.now()).run();
+    return jsonOk({ message: '评论成功' }, origin);
+  }
+  return err('Method not allowed', 405, origin);
+}
+
+
+// ==========================================
 // Decap CMS GitHub OAuth 认证网关
 // ==========================================
 async function handleDecapOAuth(request, env, url, path, origin) {
@@ -1787,6 +1857,17 @@ async function onRequest(context) {
   if(method==='OPTIONS') return new Response(null,{status:204,headers:getCorsHeaders(origin)});
 
   // Decap CMS GitHub OAuth 路由
+  // D1 实时配置与动态交互路由
+  if (path === '/settings') {
+    return await handleD1Settings(request, env, method, origin);
+  }
+  if (path === '/stats') {
+    return await handleD1Stats(request, env, url, method, origin);
+  }
+  if (path === '/d1-comments') {
+    return await handleD1Comments(request, env, url, method, origin);
+  }
+
   if (path === '/auth' || path === '/callback') {
     return await handleDecapOAuth(request, env, url, path, origin);
   }
@@ -2667,5 +2748,6 @@ export default {
     return onRequest({ request, env, ctx });
   }
 };
+
 
 
