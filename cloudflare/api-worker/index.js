@@ -1687,7 +1687,7 @@ async function handleDrive(request, env, url, path, method, origin) {
   return err('Not found', 404, origin);
 }
 
-export default async function onRequest(context) {
+async function onRequest(context) {
   const request = context.request;
   const env = context.env || {};
   SUPABASE_URL = env.SUPABASE_URL || '';
@@ -2598,3 +2598,4 @@ export default {
     return onRequest({ request, env, ctx });
   }
 };
+
