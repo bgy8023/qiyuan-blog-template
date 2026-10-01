@@ -1,3 +1,67 @@
+
+// ==========================================
+// Decap CMS GitHub OAuth 认证网关
+// ==========================================
+async function handleDecapOAuth(request, env, url, path, origin) {
+  const GITHUB_CLIENT_ID = env.OAUTH_GITHUB_CLIENT_ID || '';
+  const GITHUB_CLIENT_SECRET = env.OAUTH_GITHUB_CLIENT_SECRET || '';
+
+  if (path === '/auth') {
+    const authUrl = 'https://github.com/login/oauth/authorize?client_id=' + GITHUB_CLIENT_ID + '&scope=repo,user';
+    return Response.redirect(authUrl, 302);
+  }
+
+  if (path === '/callback') {
+    const code = url.searchParams.get('code');
+    if (!code) return new Response('Missing code parameter', { status: 400 });
+
+    try {
+      const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: GITHUB_CLIENT_ID,
+          client_secret: GITHUB_CLIENT_SECRET,
+          code: code
+        })
+      });
+
+      const tokenData = await tokenRes.json();
+      if (tokenData.error) {
+        return new Response('OAuth Error: ' + (tokenData.error_description || tokenData.error), { status: 400 });
+      }
+
+      const message = {
+        token: tokenData.access_token,
+        provider: 'github'
+      };
+
+      const html = '<!doctype html><html><body><script>' +
+        '(function() {' +
+        '  function receiveMessage(e) {' +
+        '    window.opener.postMessage("authorization:github:success:' + JSON.stringify(message).replace(/"/g, '\\"') + '", e.origin);' +
+        '    window.removeEventListener("message", receiveMessage, false);' +
+        '    window.close();' +
+        '  }' +
+        '  window.addEventListener("message", receiveMessage, false);' +
+        '  window.opener.postMessage("authorizing:github", "*");' +
+        '})();' +
+        '</script></body></html>';
+
+      return new Response(html, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    } catch (e) {
+      return new Response('Auth Failed: ' + (e?.message || e), { status: 500 });
+    }
+  }
+
+  return new Response('Not Found', { status: 404 });
+}
+
 let SUPABASE_URL = '';
 let SUPABASE_KEY = '';
 // 自定义评论系统：评论记录存 Cloudflare KV（经 REST API，边缘函数运行在 EdgeOne 无法直接用 Worker 绑定）
@@ -1722,6 +1786,11 @@ async function onRequest(context) {
   
   if(method==='OPTIONS') return new Response(null,{status:204,headers:getCorsHeaders(origin)});
 
+  // Decap CMS GitHub OAuth 路由
+  if (path === '/auth' || path === '/callback') {
+    return await handleDecapOAuth(request, env, url, path, origin);
+  }
+
   // AI 站内助手：RAG 管线（硅基流动 + Neon 文章 + Supabase 资源 + DeepSeek），见 handleChatRag
   if(path.startsWith('/chat-api')) {
     try {
@@ -2598,4 +2667,5 @@ export default {
     return onRequest({ request, env, ctx });
   }
 };
+
 

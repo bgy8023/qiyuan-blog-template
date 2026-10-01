@@ -1,0 +1,26 @@
+backend:
+  name: github
+  repo: bgy8023/qiyuan-blog-template
+  branch: main
+  base_url: https://api-blog.mars1024.com
+  auth_endpoint: auth
+
+media_folder: "public/img"
+public_folder: "/img"
+
+locale: "zh_Hant"
+
+collections:
+  - name: "blog"
+    label: "博客文章 (Blog Posts)"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "标题 (Title)", name: "title", widget: "string" }
+      - { label: "描述 (Description)", name: "description", widget: "string" }
+      - { label: "发布日期 (Publish Date)", name: "pubDate", widget: "datetime", format: "MMM DD YYYY HH:mm", date_format: "MMM DD YYYY", time_format: "HH:mm" }
+      - { label: "分类 (Categories)", name: "categories", widget: "list", default: ["随笔"] }
+      - { label: "标签 (Tags)", name: "tags", widget: "list", default: ["博客"] }
+      - { label: "开启文章朗读 (Audio)", name: "audio", widget: "boolean", default: false, required: false }
+      - { label: "正文 (Body)", name: "body", widget: "markdown" }
