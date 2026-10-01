@@ -1,4 +1,4 @@
 # Cloudflare Pages redirects
+/api/* https://api-blog.mars1024.com/:splat 200
 /blog/* /post/:splat 301
 /feed /rss.xml 301
-
