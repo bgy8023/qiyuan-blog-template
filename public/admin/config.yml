@@ -11,70 +11,128 @@ public_folder: "/img"
 locale: "zh_Hant"
 
 collections:
+  # ==========================================
+  # 1. 博客文章管理 (Blog Content)
+  # ==========================================
   - name: "blog"
-    label: "博客文章 (Blog Posts)"
+    label: "📝 博客文章管理 (Blog Posts)"
     folder: "src/content/blog"
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - { label: "标题 (Title)", name: "title", widget: "string" }
-      - { label: "描述 (Description)", name: "description", widget: "string" }
-      - { label: "发布日期 (Publish Date)", name: "pubDate", widget: "datetime", format: "MMM DD YYYY HH:mm", date_format: "MMM DD YYYY", time_format: "HH:mm" }
-      - { label: "分类 (Categories)", name: "categories", widget: "list", default: ["随笔"] }
-      - { label: "标签 (Tags)", name: "tags", widget: "list", default: ["博客"] }
-      - { label: "开启文章朗读 (Audio)", name: "audio", widget: "boolean", default: false, required: false }
-      - { label: "正文 (Body)", name: "body", widget: "markdown" }
+      - { label: "文章标题 (Title)", name: "title", widget: "string" }
+      - { label: "文章摘要 (Description)", name: "description", widget: "string" }
+      - { label: "发布时间 (Publish Date)", name: "pubDate", widget: "datetime", format: "MMM DD YYYY HH:mm", date_format: "MMM DD YYYY", time_format: "HH:mm" }
+      - { label: "文章封面图 (Cover Image)", name: "heroImage", widget: "image", required: false }
+      - { label: "文章分类 (Categories)", name: "categories", widget: "list", default: ["随笔"] }
+      - { label: "文章标签 (Tags)", name: "tags", widget: "list", default: ["博客"] }
+      - { label: "置顶序号 (Pin Order)", name: "pin", widget: "number", value_type: "int", required: false, hint: "数字越小越靠前" }
+      - { label: "启用 AI 语音朗读 (TTS Audio)", name: "audio", widget: "boolean", default: false, required: false }
+      - { label: "文章 Markdown 正文 (Body Content)", name: "body", widget: "markdown" }
 
+  # ==========================================
+  # 2. 全站核心配置面板 (Global Site Settings)
+  # ==========================================
   - name: "settings"
-    label: "网站全功能开关与配置 (Site Settings)"
+    label: "⚙️ 网站全功能与参数控制台 (Control Panel)"
     delete: false
     editor:
       preview: false
     files:
       - name: "site_config"
-        label: "全局设置与模块开关 (General & Features)"
+        label: "全站配置与开关总览 (Site Configurations)"
         file: "config/site.yaml"
         fields:
-          - label: "基础站点信息 (Site Info)"
+          # --- 基础属性 ---
+          - label: "📌 站点核心属性 (Basic Info)"
             name: "site"
             widget: "object"
             fields:
-              - { label: "网站标题 (Title)", name: "title", widget: "string" }
-              - { label: "英文副标/标识 (Alternate)", name: "alternate", widget: "string" }
-              - { label: "网站副标题 (Subtitle)", name: "subtitle", widget: "string" }
-              - { label: "站长名字 (Author Name)", name: "author", widget: "string" }
-              - { label: "网站描述 (Description)", name: "description", widget: "text" }
-              - { label: "网站域名 (Site URL)", name: "url", widget: "string" }
+              - { label: "网站主标题 (Site Title)", name: "title", widget: "string" }
+              - { label: "副标缩写/英文名 (Alternate)", name: "alternate", widget: "string" }
+              - { label: "标语/副标题 (Subtitle)", name: "subtitle", widget: "string" }
+              - { label: "站长/作者昵称 (Author)", name: "author", widget: "string" }
+              - { label: "全站 SEO 描述 (Description)", name: "description", widget: "text" }
+              - { label: "博客主站域名 (Site URL)", name: "url", widget: "string" }
               - { label: "建站年份 (Start Year)", name: "startYear", widget: "number", value_type: "int" }
+              - { label: "时区设置 (Timezone)", name: "timezone", widget: "string", default: "Asia/Shanghai" }
 
-          - label: "AI 站内问答助手 (RAG AI)"
+          # --- 社交账号 ---
+          - label: "🌐 社交媒体链接 (Social Links)"
+            name: "social"
+            widget: "object"
+            fields:
+              - label: "GitHub 主页"
+                name: "github"
+                widget: "object"
+                fields:
+                  - { label: "URL", name: "url", widget: "string" }
+              - label: "联系邮箱"
+                name: "email"
+                widget: "object"
+                fields:
+                  - { label: "Mailto 地址", name: "url", widget: "string" }
+              - label: "Telegram 频道/账号"
+                name: "telegram"
+                widget: "object"
+                fields:
+                  - { label: "URL", name: "url", widget: "string" }
+              - label: "X / Twitter"
+                name: "twitter"
+                widget: "object"
+                fields:
+                  - { label: "URL", name: "url", widget: "string" }
+
+          # --- 评论系统 ---
+          - label: "💬 评论系统集成 (Comments)"
+            name: "comment"
+            widget: "object"
+            fields:
+              - label: "评论服务商 (Provider)"
+                name: "provider"
+                widget: "select"
+                options:
+                  - { label: "关闭评论 (Disabled)", value: "none" }
+                  - { label: "Cloudflare KV 原生评论 (Custom)", value: "custom" }
+                  - { label: "Giscus (GitHub Discussions)", value: "giscus" }
+                  - { label: "Waline 评论", value: "waline" }
+                  - { label: "Twikoo 评论", value: "twikoo" }
+                default: "none"
+
+          # --- AI 站内问答 ---
+          - label: "🤖 AI 站内问答助手 (RAG AI Agent)"
             name: "rag"
             widget: "object"
             fields:
-              - { label: "开启 AI 问答助手 (Enable RAG)", name: "enabled", widget: "boolean", default: false }
+              - { label: "开启全站 AI 助手 (Enable AI Agent)", name: "enabled", widget: "boolean", default: false }
+              - { label: "召回参考条数 (Top K)", name: "topK", widget: "number", value_type: "int", default: 5 }
 
-          - label: "临时邮箱功能 (Temp Mail)"
+          # --- 临时邮箱功能 ---
+          - label: "📬 临时邮箱服务 (Temp Mail)"
             name: "tempMail"
             widget: "object"
             fields:
-              - { label: "开启临时邮箱 (Enable TempMail)", name: "enabled", widget: "boolean", default: false }
+              - { label: "开启临时邮箱功能 (Enable TempMail)", name: "enabled", widget: "boolean", default: false }
 
-          - label: "资源站功能 (Resources)"
+          # --- 资源站分享 ---
+          - label: "📦 资源站导航与页面 (Resources)"
             name: "resources"
             widget: "object"
             fields:
-              - { label: "开启资源站页面 (Enable Resources)", name: "enabled", widget: "boolean", default: false }
-              - { label: "导航名称 (Label)", name: "label", widget: "string", default: "资源站" }
+              - { label: "开启资源站 (Enable Resources)", name: "enabled", widget: "boolean", default: false }
+              - { label: "导航栏名称 (Label)", name: "label", widget: "string", default: "资源站" }
 
-          - label: "背景音乐播放器 (BGM Player)"
+          # --- 背景音乐 ---
+          - label: "🎵 背景音乐播放器 (BGM Player)"
             name: "bgm"
             widget: "object"
             fields:
-              - { label: "开启背景音乐 (Enable BGM)", name: "enabled", widget: "boolean", default: true }
-              - { label: "Meting API 接口", name: "metingApi", widget: "string", default: "https://api.i-meto.com/meting/api" }
+              - { label: "开启音乐浮窗 (Enable BGM)", name: "enabled", widget: "boolean", default: true }
+              - { label: "Meting API 地址", name: "metingApi", widget: "string", default: "https://api.i-meto.com/meting/api" }
 
-          - label: "动效与特效 (Anime & Effects)"
+          # --- 全站动效 ---
+          - label: "✨ 动效与视觉体验 (Visual & Anime)"
             name: "anime"
             widget: "object"
             fields:
-              - { label: "启用全站动效 (Enable Animations)", name: "enabled", widget: "boolean", default: true }
+              - { label: "开启全站动画效果", name: "enabled", widget: "boolean", default: true }

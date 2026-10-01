@@ -1,13 +1,68 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>内容管理后台 - Content Manager</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <title>Mars1024 博客管理中心 - Content & Site Control Panel</title>
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    /* 现代控制台美化增强 */
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #0f172a;
+    }
+    /* 顶部高亮与品牌状态栏 */
+    .top-bar {
+      background: linear-gradient(90deg, #1e293b, #0f172a);
+      color: #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+    }
+    .brand-title {
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: #0284c7;
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .links a {
+      color: #94a3b8;
+      text-decoration: none;
+      margin-left: 16px;
+      transition: color 0.2s;
+    }
+    .links a:hover {
+      color: #38bdf8;
+    }
+  </style>
 </head>
 <body>
-  <!-- Decap CMS 核心脚本 -->
+  <div class="top-bar">
+    <div class="brand-title">
+      <span>🚀 Mars1024 Blog Control Panel</span>
+      <span class="badge">Cloudflare Edge Powered</span>
+    </div>
+    <div class="links">
+      <a href="https://mars1024.com" target="_blank">🌐 前台主站</a>
+      <a href="https://github.com/bgy8023/qiyuan-blog-template" target="_blank">📦 GitHub 仓库</a>
+      <a href="https://dash.cloudflare.com" target="_blank">⚡ Cloudflare 控制台</a>
+    </div>
+  </div>
+
+  <!-- 引入 Decap CMS 核心引擎 -->
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
 </html>
