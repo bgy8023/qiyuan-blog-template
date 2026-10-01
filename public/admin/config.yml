@@ -24,3 +24,57 @@ collections:
       - { label: "标签 (Tags)", name: "tags", widget: "list", default: ["博客"] }
       - { label: "开启文章朗读 (Audio)", name: "audio", widget: "boolean", default: false, required: false }
       - { label: "正文 (Body)", name: "body", widget: "markdown" }
+
+  - name: "settings"
+    label: "网站全功能开关与配置 (Site Settings)"
+    delete: false
+    editor:
+      preview: false
+    files:
+      - name: "site_config"
+        label: "全局设置与模块开关 (General & Features)"
+        file: "config/site.yaml"
+        fields:
+          - label: "基础站点信息 (Site Info)"
+            name: "site"
+            widget: "object"
+            fields:
+              - { label: "网站标题 (Title)", name: "title", widget: "string" }
+              - { label: "英文副标/标识 (Alternate)", name: "alternate", widget: "string" }
+              - { label: "网站副标题 (Subtitle)", name: "subtitle", widget: "string" }
+              - { label: "站长名字 (Author Name)", name: "author", widget: "string" }
+              - { label: "网站描述 (Description)", name: "description", widget: "text" }
+              - { label: "网站域名 (Site URL)", name: "url", widget: "string" }
+              - { label: "建站年份 (Start Year)", name: "startYear", widget: "number", value_type: "int" }
+
+          - label: "AI 站内问答助手 (RAG AI)"
+            name: "rag"
+            widget: "object"
+            fields:
+              - { label: "开启 AI 问答助手 (Enable RAG)", name: "enabled", widget: "boolean", default: false }
+
+          - label: "临时邮箱功能 (Temp Mail)"
+            name: "tempMail"
+            widget: "object"
+            fields:
+              - { label: "开启临时邮箱 (Enable TempMail)", name: "enabled", widget: "boolean", default: false }
+
+          - label: "资源站功能 (Resources)"
+            name: "resources"
+            widget: "object"
+            fields:
+              - { label: "开启资源站页面 (Enable Resources)", name: "enabled", widget: "boolean", default: false }
+              - { label: "导航名称 (Label)", name: "label", widget: "string", default: "资源站" }
+
+          - label: "背景音乐播放器 (BGM Player)"
+            name: "bgm"
+            widget: "object"
+            fields:
+              - { label: "开启背景音乐 (Enable BGM)", name: "enabled", widget: "boolean", default: true }
+              - { label: "Meting API 接口", name: "metingApi", widget: "string", default: "https://api.i-meto.com/meting/api" }
+
+          - label: "动效与特效 (Anime & Effects)"
+            name: "anime"
+            widget: "object"
+            fields:
+              - { label: "启用全站动效 (Enable Animations)", name: "enabled", widget: "boolean", default: true }
