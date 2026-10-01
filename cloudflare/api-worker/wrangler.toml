@@ -1,0 +1,7 @@
+name = "qiyuan-blog-api"
+main = "index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PUBLIC_BASE_URL = "https://www.qiyuan.icu"
