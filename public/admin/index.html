@@ -3,202 +3,404 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mars1024 博客管理中心 - Control Center</title>
+  <title>Mars1024 博客控制台 - 现代轻量化工作台</title>
   <link rel="icon" href="/favicon.ico" />
+  <!-- 引入现代字体与设计体系 (类似 XinBlog 风格) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-sidebar: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #243248;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #38bdf8;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #0f172a;
-      color: #f1f5f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
     }
-    .top-bar {
-      background: #1e293b;
-      padding: 12px 24px;
+
+    /* 侧边导航栏 (参考 XinBlog 经典分栏排版) */
+    aside {
+      width: 250px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand {
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-tag {
+      font-size: 11px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .nav-list {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+    .nav-item.active {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .nav-bottom {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* 主内容区 */
+    main {
+      flex-grow: 1;
+      overflow-y: auto;
+      background-color: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-sidebar);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .brand { font-size: 16px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
-    .nav-tabs { display: flex; gap: 12px; }
-    .tab-btn {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #94a3b8;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s;
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
     }
-    .tab-btn.active, .tab-btn:hover {
-      background: #0284c7;
-      color: #ffffff;
-      border-color: #0284c7;
+    .content-container {
+      padding: 32px;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
     }
-    .view-container { padding: 24px; max-width: 1200px; margin: 0 auto; display: none; }
-    .view-container.active { display: block; }
-    
-    /* 统计卡片网格 */
-    .stats-grid {
+    .view-pane {
+      display: none;
+    }
+    .view-pane.active {
+      display: block;
+    }
+
+    /* 卡片体系 */
+    .grid-3 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .card {
-      background: #1e293b;
-      border-radius: 10px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .card-title { font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; }
-    .card-value { font-size: 28px; font-weight: 700; color: #38bdf8; }
-    
-    /* 数据表格与列表 */
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
-    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
-    th { color: #94a3b8; font-weight: 600; background: rgba(0, 0, 0, 0.2); }
-    .btn-action {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
+    .card-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
     }
-    
-    /* 快速热配置表单 */
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #cbd5e1; }
+    .card-num {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    /* 表格组件 */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th, td {
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    tbody tr:hover {
+      background-color: var(--bg-card-hover);
+    }
+
+    /* 表单组件 */
+    .form-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 700px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
     .form-control {
       width: 100%;
-      padding: 8px 12px;
-      background: #0f172a;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      color: white;
+      padding: 10px 14px;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
       font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
     }
-    .btn-primary {
-      background: #0284c7;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 6px;
+    .form-control:focus {
+      border-color: var(--border-focus);
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      border: none;
+      transition: background 0.15s;
     }
-    #decap-cms-wrapper {
-      min-height: calc(100vh - 60px);
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    /* 嵌入 CMS 模式 */
+    #cms-frame {
+      width: 100%;
+      height: calc(100vh - 65px);
+      border: none;
     }
   </style>
 </head>
 <body>
-  <div class="top-bar">
+
+  <!-- 侧边导航栏 -->
+  <aside>
     <div class="brand">
-      <span>🚀 Mars1024 Blog Admin</span>
-      <span style="font-size: 11px; background: #0284c7; color: white; padding: 2px 6px; border-radius: 4px;">D1 + Worker</span>
+      <span>🚀 Mars1024</span>
+      <span class="brand-tag">Cloudflare</span>
     </div>
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('dashboard')">📊 实时仪表盘</button>
-      <button class="tab-btn" onclick="switchTab('live-config')">⚡ 边缘秒级配置</button>
-      <button class="tab-btn" onclick="switchTab('cms')">📝 文章与静态内容 (Decap CMS)</button>
-      <a href="https://mars1024.com" target="_blank" class="tab-btn" style="text-decoration:none;">🌐 前台首页</a>
+    <div class="nav-list">
+      <a class="nav-item active" onclick="switchNav('dashboard')">
+        <span>📊</span> <span>仪表总览</span>
+      </a>
+      <a class="nav-item" onclick="switchNav('comments')">
+        <span>💬</span> <span>评论审核</span>
+      </a>
+      <a class="nav-item" onclick="switchNav('settings')">
+        <span>⚡</span> <span>全局热配置</span>
+      </a>
+      <a class="nav-item" onclick="switchNav('editor')">
+        <span>📝</span> <span>文章与媒体库</span>
+      </a>
     </div>
-  </div>
+    <div class="nav-bottom">
+      <a href="https://mars1024.com" target="_blank" class="nav-item" style="color:#38bdf8;">
+        <span>🌐</span> <span>访问前台首页</span>
+      </a>
+    </div>
+  </aside>
 
-  <!-- 视图 1：实时仪表盘 -->
-  <div id="view-dashboard" class="view-container active">
-    <div class="stats-grid">
-      <div class="card">
-        <div class="card-title">全站累计阅读量 (Views)</div>
-        <div id="stat-views" class="card-value">-</div>
+  <!-- 主体工作区 -->
+  <main>
+    <header>
+      <div class="page-title" id="current-title">仪表总览 (Overview)</div>
+      <div style="font-size: 13px; color: var(--text-muted);">
+        Node: <span style="color:#10b981;">Edge Online</span> | D1: <span style="color:#10b981;">Connected</span>
       </div>
-      <div class="card">
-        <div class="card-title">全站累计点赞数 (Likes)</div>
-        <div id="stat-likes" class="card-value">-</div>
-      </div>
-      <div class="card">
-        <div class="card-title">互动评论总数 (Comments)</div>
-        <div id="stat-comments" class="card-value">-</div>
-      </div>
-    </div>
+    </header>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-      <div class="card">
-        <div class="card-title">🔥 热门文章阅读榜单</div>
+    <!-- 视图 1：仪表总览 -->
+    <div id="pane-dashboard" class="content-container view-pane active">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-label">全站总阅读量 (Total Pageviews)</div>
+          <div class="card-num" id="stat-views">-</div>
+        </div>
+        <div class="card">
+          <div class="card-label">全站互动点赞 (Total Likes)</div>
+          <div class="card-num" id="stat-likes">-</div>
+        </div>
+        <div class="card">
+          <div class="card-label">已接收评论 (Total Comments)</div>
+          <div class="card-num" id="stat-comments">-</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span>🔥 热门文章浏览排行 (Top Articles)</span>
+        </div>
         <table id="table-top-posts">
           <thead>
-            <tr><th>文章路径 (Slug)</th><th>阅读</th><th>点赞</th></tr>
+            <tr><th>文章标识 (Slug)</th><th>浏览数 (Views)</th><th>点赞数 (Likes)</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-      <div class="card">
-        <div class="card-title">💬 最新评论与快速审核</div>
-        <table id="table-recent-comments">
+    </div>
+
+    <!-- 视图 2：评论审核 -->
+    <div id="pane-comments" class="content-container view-pane">
+      <div class="table-card">
+        <div class="table-header">
+          <span>💬 原生 D1 评论管理与审核流</span>
+        </div>
+        <table id="table-comments">
           <thead>
-            <tr><th>作者</th><th>内容</th><th>状态</th><th>操作</th></tr>
+            <tr><th>评论者</th><th>内容摘要</th><th>发布时间</th><th>状态</th><th>操作</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <!-- 视图 2：边缘秒级配置 -->
-  <div id="view-live-config" class="view-container">
-    <div class="card" style="max-width: 600px;">
-      <h3 style="margin-top:0; color:#38bdf8;">⚡ Cloudflare D1 秒级热配置</h3>
-      <p style="font-size:13px; color:#94a3b8;">在此修改的值存放在边缘 D1 中，提交后前台毫秒级热更新生效，完全跳过构建流水线！</p>
-      <form id="d1-settings-form" onsubmit="saveLiveSettings(event)">
-        <div class="form-group">
-          <label>博客前台网站标题 (Site Title)</label>
-          <input type="text" id="cfg-site-title" class="form-control" />
-        </div>
-        <div class="form-group">
-          <label>站长昵称 (Author)</label>
-          <input type="text" id="cfg-author" class="form-control" />
-        </div>
-        <div class="form-group">
-          <label>AI 站内助手开关 (RAG Agent)</label>
-          <select id="cfg-rag-enabled" class="form-control">
-            <option value="true">开启 (True)</option>
-            <option value="false">关闭 (False)</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-primary">保存并立即同步至全球边缘节点</button>
-        <span id="save-tip" style="margin-left: 12px; font-size: 13px; color: #4ade80;"></span>
-      </form>
+    <!-- 视图 3：全局热配置 -->
+    <div id="pane-settings" class="content-container view-pane">
+      <div class="form-section">
+        <h3 style="margin-top:0; color:var(--accent);">⚡ Cloudflare D1 边缘秒级配置</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom: 24px;">此处设置实时写入分布式边缘数据库，前台毫秒级生效，无需等待 Git Actions 编译。</p>
+        <form onsubmit="saveLiveSettings(event)">
+          <div class="form-group">
+            <label>网站大标题 (Site Title)</label>
+            <input type="text" id="cfg-site-title" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>站长昵称 (Author)</label>
+            <input type="text" id="cfg-author" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>AI 站内助手开关 (RAG Agent)</label>
+            <select id="cfg-rag-enabled" class="form-control">
+              <option value="true">开启 (True)</option>
+              <option value="false">关闭 (False)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">保存并同步至边缘网络</button>
+          <span id="save-tip" style="margin-left: 12px; font-size: 13px; color: var(--success);"></span>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- 视图 3：Decap CMS 文章编辑系统 -->
-  <div id="view-cms" class="view-container" style="padding:0; max-width:100%;">
-    <div id="decap-cms-wrapper"></div>
-  </div>
+    <!-- 视图 4：文章与媒体库 (Decap CMS) -->
+    <div id="pane-editor" class="view-pane" style="padding:0;">
+      <div id="decap-cms-wrapper" style="height: calc(100vh - 65px);"></div>
+    </div>
+  </main>
 
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
   <script>
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-      
-      event.target.classList.add('active');
-      document.getElementById('view-' + tabId).classList.add('active');
+    const titles = {
+      dashboard: '仪表总览 (Overview)',
+      comments: '评论管理 (Comment Moderation)',
+      settings: '边缘秒级配置 (Global Settings)',
+      editor: '文章与媒体编辑系统 (Content & Media)'
+    };
 
-      if (tabId === 'dashboard') loadDashboardData();
-      if (tabId === 'live-config') loadSettingsData();
+    function switchNav(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.view-pane').forEach(el => el.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById('pane-' + tabId).classList.add('active');
+      document.getElementById('current-title').textContent = titles[tabId];
+
+      if (tabId === 'dashboard') loadDashboard();
+      if (tabId === 'comments') loadDashboard();
+      if (tabId === 'settings') loadSettings();
     }
 
-    async function loadDashboardData() {
+    async function loadDashboard() {
       try {
         const res = await fetch('/api/admin/dashboard');
         const data = await res.json();
@@ -207,38 +409,37 @@
         document.getElementById('stat-likes').textContent = data.stats.total_likes || 0;
         document.getElementById('stat-comments').textContent = data.stats.total_comments || 0;
 
-        // 填充文章
+        // 渲染 Top 文章
         const postTbody = document.querySelector('#table-top-posts tbody');
         postTbody.innerHTML = (data.top_posts || []).map(p => `
           <tr><td>${p.slug}</td><td>${p.views}</td><td>${p.likes}</td></tr>
-        `).join('') || '<tr><td colspan="3" style="text-align:center;">暂无数据</td></tr>';
+        `).join('') || '<tr><td colspan="3" style="text-align:center;">暂无浏览数据</td></tr>';
 
-        // 填充评论
-        const commentTbody = document.querySelector('#table-recent-comments tbody');
+        // 渲染 评论
+        const commentTbody = document.querySelector('#table-comments tbody');
         commentTbody.innerHTML = (data.recent_comments || []).map(c => `
           <tr>
-            <td>${c.author}</td>
+            <td><strong>${c.author}</strong></td>
             <td>${c.content}</td>
-            <td><span style="color:#4ade80;">${c.status}</span></td>
-            <td><button class="btn-action" onclick="deleteComment(${c.id})">删除</button></td>
+            <td>${new Date(c.created_at).toLocaleString()}</td>
+            <td><span style="color:#10b981; font-weight:600;">${c.status}</span></td>
+            <td><button class="btn-danger" onclick="deleteComment(${c.id})">删除</button></td>
           </tr>
-        `).join('') || '<tr><td colspan="4" style="text-align:center;">暂无评论</td></tr>';
-      } catch(e) {
-        console.error(e);
-      }
+        `).join('') || '<tr><td colspan="5" style="text-align:center;">暂无评论</td></tr>';
+      } catch(e) { console.error(e); }
     }
 
     async function deleteComment(id) {
-      if (!confirm('确定删除该评论？')) return;
+      if (!confirm('确定彻底删除该评论？')) return;
       await fetch('/api/admin/comment-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: 'delete' })
       });
-      loadDashboardData();
+      loadDashboard();
     }
 
-    async function loadSettingsData() {
+    async function loadSettings() {
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
@@ -267,8 +468,7 @@
       setTimeout(() => tip.textContent = '', 3000);
     }
 
-    // 初始化加载
-    loadDashboardData();
+    loadDashboard();
   </script>
 </body>
 </html>
